@@ -4,7 +4,7 @@ from gym.utils import seeding
 import numpy as np
 import time
 import sys
-sys.path.append('C:/Users/xuwei1/Documents/baselines')
+sys.path.append('E:/catcher/baselines')
 
 from baselines import deepq
 
@@ -17,8 +17,9 @@ class Catcher(object):
         # self.state init
         self.reset()
         self.seed()
-        high = np.array([self.grid_size, self.grid_size-1, self.grid_size-2])
-        self.observation_space = spaces.Box(-high, high,dtype = np.uint8)
+        # high = np.array([self.grid_size, self.grid_size-1, self.grid_size-2])
+        # low = np.array([0,0,0])
+        self.observation_space = spaces.Box(low =0, high = 1, shape = (1,100), dtype = np.uint8)
         # self.viewer = None
 
 
@@ -90,6 +91,14 @@ class Catcher(object):
         self.viewer.render(return_rgb_array = mode=='rgb_array')
 
         return canvas
+    def _to_state(self):
+        im_size = (self.grid_size,)*2
+        state = self.state[0]
+
+        canvas = np.zeros(im_size)
+        canvas[state[0], state[1]] = 1  # draw fruit
+        canvas[-1, state[2]-1:state[2] + 2] = 1  # draw basket
+        return canvas
 
     def _update_state(self, action):
         """
@@ -119,7 +128,7 @@ class Catcher(object):
         return self.observe(), reward, game_over, {}
 
     def observe(self):
-        canvas = self.render()
+        canvas = self._to_state()
         return canvas.reshape((1, -1))
 
     def _get_reward(self):
@@ -148,14 +157,15 @@ def test():
     for i in range(10):
         time.sleep(1)
         agent.render()
-        state, reward, game_over, _ = agent.step(np.random.randint(0, 2, size=1))
-        print(state)
+        action = np.random.randint(0, 3, size=1)
+        state, reward, game_over, _ = agent.step(action)
         if game_over:
-            print(reward)
+            print(state.shape)
             break
 
 def main():
     env = Catcher()
+    # env = gym.make("MountainCar-v0")
     # Enabling layer_norm here is import for parameter space noise!
     model = deepq.models.mlp([64], layer_norm=True)
     act = deepq.learn(
@@ -167,7 +177,6 @@ def main():
         exploration_fraction=0.1,
         exploration_final_eps=0.1,
         print_freq=1,
-        param_noise=True
     )
     print("Saving model to mountaincar_model.pkl")
     act.save("./model/mountaincar_model.pkl")
