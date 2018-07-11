@@ -17,8 +17,8 @@ class Catcher(object):
         # self.state init
         self.reset()
         self.seed()
-        high = np.array([1., 1., 1.])
-        self.observation_space = spaces.Box(low=-high, high=high)
+        high = np.array([self.grid_size, self.grid_size-1, self.grid_size-2])
+        self.observation_space = spaces.Box(-high, high,dtype = np.uint8)
         # self.viewer = None
 
 
@@ -66,7 +66,7 @@ class Catcher(object):
             basket.add_attr(self.baskettrans)
             self.viewer.add_geom(basket)
 
-            """
+            
             for col in range(0, self.grid_size):
                 self.track = rendering.Line((scale*col,0), (scale*col, screen_height))
                 self.track.set_color(.9,.8,.7)
@@ -76,7 +76,6 @@ class Catcher(object):
                 self.track = rendering.Line((0, scale*row), (screen_width, scale*row))
                 self.track.set_color(.9,.8,.7)
                 self.viewer.add_geom(self.track)
-            """
 
         if self.state is None: return None
 
@@ -171,7 +170,7 @@ def main():
         param_noise=True
     )
     print("Saving model to mountaincar_model.pkl")
-    act.save("mountaincar_model.pkl")
+    act.save("./model/mountaincar_model.pkl")
 
 if __name__ == '__main__':
     main()
